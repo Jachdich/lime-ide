@@ -48,7 +48,8 @@ class SettingsDialog(Dialog):
         self.layout.addWidget(self.tabs)
         
         self.tab_appearance = AppearanceTab()
-        self.tab_appearance.setStyleSheet("QWidget, QWidget * {color: #dddddd; background-color: #333333;}")
+        self.tab_appearance.setStyleSheet(QWidgetStyle)
+        #self.tab_appearance.setStyleSheet("QWidget, QWidget * {color: #dddddd; background-color: #333333;}") note: Tried this however it didn't work.
         self.tab_appearance_layout = QtWidgets.QGridLayout()
         self.tab_appearance.setLayout(self.tab_appearance_layout)
         self.tabs.addTab(self.tab_appearance, "Appearance")
@@ -64,4 +65,3 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication([])
     d = SettingsDialog()
     print(app.exec_())
-    win.net.close()
