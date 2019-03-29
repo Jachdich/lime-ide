@@ -1,0 +1,48 @@
+{"words": {
+    "keywords":
+    [
+        "and", "assert", "break", "class", "continue", "def",
+        "del", "elif", "else", "except", "exec", "finally",
+        "for", "from", "global", "if", "import", "in",
+        "is", "lambda", "not", "or", "pass",
+        "raise", "return", "try", "while", "yield",
+        "None", "True", "False", "as", "with"
+    ],
+
+    "operators":
+    [
+        "=",
+        "==", "!=", "<", "<=", ">", ">=",
+        "\\+", "-", "\\*", "/", "//", "\\%", "\\*\\*",
+        "\\+=", "-=", "\\*=", "/=", "\\%=",
+        "\\^", "\\|", "\\&", "\\~", ">>", "<<"
+    ],
+
+    "braces":
+    [
+        "\\{", "\\}", "\\(", "\\)", "\\[", "\\]"
+    ],
+
+    "builtins":
+    [
+        "format", "bytes", "len", "open", "Exception",
+        "IndexError", "ValueError", "TypeError", "print"
+    ]},
+
+"colours": {
+    "fg"      : "#dddddd",
+	"bg"      : "#333333",
+	"light"   : "#555555",
+	"dark"    : "#2d2d2d",
+    "builtin" : ["#ff00ff", "default"],
+    "keyword" : ["#ff8000", "default"],
+    "operator": ["red", "default"],
+    "brace"   : ["darkGray", "default"],
+    "defclass": ["#5e5eff", "default"],
+    "string"  : ["#02ff02", "default"],
+    "string2" : ["#02ff02", "default"],
+    "comment" : ["#107f2f", "italic"],
+    "self"    : ["#dddddd", "italic"],
+    "numbers" : ["#dddddd", "default"]
+}
+}
