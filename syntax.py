@@ -1,10 +1,11 @@
 import sys
 
 from PyQt5.QtCore import QRegExp
-from PyQt5.QtGui import QColor, QTextCharFormat, QFont, QSyntaxHighlighter
+from PyQt5 import QtGui
+#from PyQt5.QtGui import QColor, QTextCharFormat, QFont, QSyntaxHighlighter
 from stylesheets import (bgcolour, fgcolour, keyword_colour, operator_colour, brace_colour,
                          defclass_colour, string_colour, string2_colour, comment_colour,
-                         self_colour, numbers_colour, builtin_colour)
+                         self_colour, numbers_colour, builtin_colour, reload_words)
 
 from stylesheets import (builtins  as builtin,
                          keywords  as keyword,
@@ -17,13 +18,13 @@ def format(style, colour_bg=bgcolour):
     colour = style[0]
     style = style[1]
     
-    _colour = QColor()
+    _colour = QtGui.QColor()
     _colour.setNamedColor(colour)
 
-    _colour_bg = QColor()
+    _colour_bg = QtGui.QColor()
     _colour_bg.setNamedColor(colour_bg)
 
-    _format = QTextCharFormat()
+    _format = QtGui.QTextCharFormat()
     _format.setForeground(_colour)
     _format.setBackground(_colour_bg)
     if 'bold' in style:
@@ -48,20 +49,20 @@ STYLES = {
     'numbers': format(numbers_colour),
 }
 
-class PythonHighlighter (QSyntaxHighlighter):
+class PythonHighlighter(QtGui.QSyntaxHighlighter):
     """Syntax highlighter for the Python language.
     """
-    # Python keywords
-    builtins = builtin
-    keywords = keyword
-
-    # Python operators
-    operators = operator
-
-    # Python braces
-    braces = brace
     def __init__(self, document):
-        QSyntaxHighlighter.__init__(self, document)
+        QtGui.QSyntaxHighlighter.__init__(self, document)
+        # Python keywords
+        self.builtins = builtin
+        self.keywords = keyword
+
+        # Python operators
+        self.operators = operator
+
+        # Python braces
+        self.braces = brace
 
         # Multi-line strings (expression, flag, style)
         # FIXME: The triple-quotes in these two lines will mess up the
@@ -73,13 +74,13 @@ class PythonHighlighter (QSyntaxHighlighter):
 
         # Keyword, operator, and brace rules
         rules += [(r'\b%s\b' % w, 0, STYLES['keyword'])
-            for w in PythonHighlighter.keywords]
+            for w in self.keywords]
         rules += [(r'\b%s\b' % w, 0, STYLES['builtins'])
-            for w in PythonHighlighter.builtins]
+            for w in self.builtins]
         rules += [(r'%s' % o, 0, STYLES['operator'])
-            for o in PythonHighlighter.operators]
+            for o in self.operators]
         rules += [(r'%s' % b, 0, STYLES['brace'])
-            for b in PythonHighlighter.braces]
+            for b in self.braces]
 
         # All other rules
         rules += [
@@ -109,6 +110,12 @@ class PythonHighlighter (QSyntaxHighlighter):
         self.rules = [(QRegExp(pat), index, fmt)
             for (pat, index, fmt) in rules]
 
+    def redefine_words(self):
+        reload_words()
+        self.builtins = builtin
+        self.keywords = keyword
+        self.operators = operator
+        self.braces = brace
 
     def highlightBlock(self, text):
         """Apply syntax highlighting to the given block of text.

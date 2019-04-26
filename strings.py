@@ -50,3 +50,7 @@ def create_multiline(d):
         out += d[key] + "\n"
         out += '"""' + "\n"
     return out
+
+def run_file(filename):
+    with open(filename, "r") as f:
+        exec(f.read())

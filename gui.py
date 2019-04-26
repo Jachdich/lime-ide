@@ -1,9 +1,12 @@
-from PyQt5 import QtCore, QtWidgets, QtGui
-from constants import *
+from PyQt5       import QtCore, QtWidgets, QtGui
+from constants   import *
 from stylesheets import QTreeViewStyle, QVScrollbarStyle, QHScrollbarStyle, QTabWidgetStyle
 from stylesheets import QPlainTextStyle, QTreeViewHeaderStyle, QMainWindowStyle, QWidgetStyle
-import os, syntax, threading, subprocess
+from strings     import run_file
+import os, syntax, threading, subprocess, json
 from sys import exit
+
+needs_to_be_updated = []
 
 class FileMenu(QtWidgets.QWidget):
     item_changed = QtCore.pyqtSignal(str)
@@ -128,8 +131,8 @@ class HighlightedTextBox(QtWidgets.QPlainTextEdit):
         
         self.setStyleSheet(QPlainTextStyle)
 
-        self.textChanged.connect(self.signal_text_changed)
         self.syntax = syntax.PythonHighlighter(self.document())
+        needs_to_be_updated.append(self)
         
     def add_indent(self):
         if self.last_key_backspace or not self.inserted_by_user:
@@ -146,7 +149,7 @@ class HighlightedTextBox(QtWidgets.QPlainTextEdit):
         #if the text ends with a colon and a newline, we add one to the indent
         if top_text.endswith(":\n"):
             self.insertPlainText(" " * indent_level * (self.get_indent_level(top_text) + 1))
-        #if the text ends with a newlinem, indent by the previous amount
+        #if the text ends with a newline, indent by the previous amount
         elif top_text.endswith("\n"):
             self.insertPlainText(" " * indent_level * self.get_indent_level(top_text))
         else:
@@ -163,9 +166,6 @@ class HighlightedTextBox(QtWidgets.QPlainTextEdit):
                 break
             total += 1
         return total // indent_level
-
-    def signal_text_changed(self):
-        pass #self.add_indent()
 
     def insertPlainText(self, text):
         self.inserted_by_user = False
@@ -185,6 +185,12 @@ class HighlightedTextBox(QtWidgets.QPlainTextEdit):
         super(HighlightedTextBox, self).keyPressEvent(event)
         if event.key() == QtCore.Qt.Key_Return:
             self.add_indent()
+
+    def update(self):
+        super().__init__()
+        self.setStyleSheet(QPlainTextStyle)
+        #self.syntax = syntax.PythonHighlighter(self.document())
+        self.syntax.redefine_words()
             
 class _SortProxyModel(QtCore.QSortFilterProxyModel):
     """Sorting proxy model that always places folders on top."""
@@ -214,32 +220,100 @@ class _SortProxyModel(QtCore.QSortFilterProxyModel):
         return result
 
 class Dialog(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, initialX=600, initialY=400):
         super().__init__()
         self.layout = QtWidgets.QGridLayout()
         self.main = QtWidgets.QWidget()
         self.main.setLayout(self.layout)
+        self.main.resize(initialX, initialY)
         
         self.setStyleSheet(QMainWindowStyle)
         self.setCentralWidget(self.main)
         self.show()
 
 class AppearanceTab(QtWidgets.QWidget):
-    def __init__(self):
-        super().__init__()
-        #self.setStyleSheet("QWidget, QWidget * {color: #dddddd; background-color: #333333;}")
-
-class SettingsDialog(Dialog):
-    def __init__(self):
+    def __init__(self, initialX=600, initialY=400):
         super().__init__()
         self.tabs = QtWidgets.QTabWidget(self)
         self.tabs.setStyleSheet(QTabWidgetStyle)
+        self.layout = QtWidgets.QGridLayout()
+        self.layout.addWidget(self.tabs, 0, 0, 10, 10)
+        
+        self.tab_syntax = QtWidgets.QWidget()
+        self.tab_syntax.setStyleSheet(QWidgetStyle)
+        self.tab_syntax_layout = QtWidgets.QGridLayout()
+        self.tab_syntax.setLayout(self.tab_syntax_layout)
+        self.tabs.addTab(self.tab_syntax, "Syntax")
+
+        self.tab_server = QtWidgets.QWidget()
+        self.tab_server.setStyleSheet(QWidgetStyle)
+        self.tab_server_layout = QtWidgets.QGridLayout()
+        self.tab_server.setLayout(self.tab_server_layout)
+        self.tabs.addTab(self.tab_server, "Server")
+
+        self.tab_appearance1 = QtWidgets.QWidget()
+        self.tab_appearance1.setStyleSheet(QWidgetStyle)
+        self.tab_appearance1_layout = QtWidgets.QGridLayout()
+        self.tab_appearance1.setLayout(self.tab_appearance1_layout)
+        self.tabs.addTab(self.tab_appearance1, "Old")
+
+        self.init_tabs()
+        self.resize(initialX, initialY)
+
+    def init_tabs(self):
+        with open("styles.json", "r") as f:
+            self.styles = json.loads(f.read())
+
+        #syntax highlighting
+        self.l_keyw = QtWidgets.QLabel(self)
+        self.t_keyw = HighlightedTextBox(self)
+        self.t_keyw.insertPlainText(", ".join(self.styles["words"]["keywords"]))
+        self.l_keyw.setText("Keywords")
+        self.tab_syntax_layout.addWidget(self.l_keyw, 0, 0)
+        self.tab_syntax_layout.addWidget(self.t_keyw, 1, 0)
+
+        self.l_builtin = QtWidgets.QLabel(self)
+        self.t_builtin = HighlightedTextBox(self)
+        self.t_builtin.insertPlainText(", ".join(self.styles["words"]["builtins"]))
+        self.l_builtin.setText("Builtins")
+        self.tab_syntax_layout.addWidget(self.l_builtin, 0, 1)
+        self.tab_syntax_layout.addWidget(self.t_builtin, 1, 1)
+
+        self.l_builtin_colour = QtWidgets.QLabel(self)
+        self.l_builtin_colour.setText("Builtin colour")
+        self.l_builtin_colour.setStyleSheet("QLabel { background-color: red; }")
+        self.tab_syntax_layout.addWidget(self.l_builtin_colour, 0, 2)
+
+    def apply(self):
+        keywords = self.t_keyw.toPlainText().replace(" ", "")
+        if keywords.endswith(","):
+            keywords = keywords[:-1]
+        builtins = self.t_builtin.toPlainText().replace(" ", "")
+        if builtins.endswith(","):
+            builtins = builtins[:-1]
+
+        keywords = keywords.split(",")
+        builtins = builtins.split(",")
+        self.styles["words"]["builtins"] = builtins
+        self.styles["words"]["keywords"] = keywords
+        with open("styles.json", "w") as f:
+            f.write(json.dumps(self.styles, sort_keys=False, indent=4))
+            """
+        run_file("syntax.py")
+        run_file("gui.py")
+        for widget in needs_to_be_updated:
+            widget.update()"""
+
+class SettingsDialog(Dialog):
+    def __init__(self, initialX=600, initialY=400):
+        super().__init__(initialX, initialY)
+        self.tabs = QtWidgets.QTabWidget(self)
+        self.tabs.setStyleSheet(QTabWidgetStyle)
         self.layout.addWidget(self.tabs)
+        self.tabs.resize(initialX, initialY)
         
         self.tab_appearance = AppearanceTab()
         self.tab_appearance.setStyleSheet("QWidget, QWidget * {color: #dddddd; background-color: #333333;}")
-        self.tab_appearance_layout = QtWidgets.QGridLayout()
-        self.tab_appearance.setLayout(self.tab_appearance_layout)
         self.tabs.addTab(self.tab_appearance, "Appearance")
 
         self.tab_server = QtWidgets.QWidget()
@@ -253,6 +327,12 @@ class SettingsDialog(Dialog):
         self.tab_appearance1_layout = QtWidgets.QGridLayout()
         self.tab_appearance1.setLayout(self.tab_appearance1_layout)
         self.tabs.addTab(self.tab_appearance1, "Old")
+
+        self.b_apply = QtWidgets.QPushButton(self)
+        self.b_apply.setText("Apply")
+        self.b_apply.clicked.connect(self.tab_appearance.apply)
+        self.layout.addWidget(self.b_apply)
+        self.resize(initialX, initialY)
 
 class TextDialog(Dialog):
     def __init__(self, text):

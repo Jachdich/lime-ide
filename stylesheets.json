@@ -80,7 +80,7 @@ QScrollBar::sub-line:horizontal {{
 
 QMainWindowStyle
 """
-QMainWindow {{
+QMainWindow, QMainWindow * {{
     background-color: {bg};
     color: {fg};
 }}

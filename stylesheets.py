@@ -50,3 +50,11 @@ QMenuStyle           = stylesheets["QMenuStyle"]
 QTabWidgetStyle      = stylesheets["QTabWidgetStyle"]
 QPlainTextStyle      = stylesheets["QPlainTextStyle"]
 
+def reload_words():
+    with open("styles.json", "r") as f:
+        styles_json = loads(f.read()) 
+    styles = styles_json["words"]
+    builtins  = styles["builtins"]
+    keywords  = styles["keywords"]
+    operators = styles["operators"]
+    braces    = styles["braces"]
