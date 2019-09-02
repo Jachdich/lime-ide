@@ -7,7 +7,7 @@ import gui, net
 from constants import *
 from stylesheets import QMainWindowStyle, QMenuStyle
 
-HOST = "cospox.com"
+HOST = "127.0.0.1"
 
 #main window class
 class Window(QtWidgets.QMainWindow):

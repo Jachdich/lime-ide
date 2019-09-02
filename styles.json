@@ -1,5 +1,64 @@
 {
     "words": {
+        "braces": [
+            "\\{",
+            "\\}",
+            "\\(",
+            "\\)",
+            "\\[",
+            "\\]"
+        ],
+        "operators": [
+            "=",
+            "==",
+            "!=",
+            "<",
+            "<=",
+            ">",
+            ">=",
+            "\\+",
+            "-",
+            "\\*",
+            "/",
+            "//",
+            "\\%",
+            "\\*\\*",
+            "\\+=",
+            "-=",
+            "\\*=",
+            "/=",
+            "\\%=",
+            "\\^",
+            "\\|",
+            "\\&",
+            "\\~",
+            ">>",
+            "<<"
+        ],
+        "builtins": [
+            "format",
+            "bytes",
+            "len",
+            "open",
+            "Exception",
+            "IndexError",
+            "ValueError",
+            "TypeError",
+            "print",
+            "str",
+            "int",
+            "float",
+            "list",
+            "dict",
+            "map",
+            "enumerate",
+            "super",
+            "isinstance",
+            "exit",
+            "max",
+            "min",
+            "ooooo"
+        ],
         "keywords": [
             "and",
             "assert",
@@ -34,96 +93,9 @@
             "False",
             "as",
             "with"
-        ],
-        "builtins": [
-            "format",
-            "bytes",
-            "len",
-            "open",
-            "Exception",
-            "IndexError",
-            "ValueError",
-            "TypeError",
-            "print",
-            "str",
-            "int",
-            "float",
-            "list",
-            "dict",
-            "map",
-            "enumerate",
-            "super",
-            "isinstance",
-            "exit",
-            "max",
-            "min",
-            "ooooo"
-        ],
-        "operators": [
-            "=",
-            "==",
-            "!=",
-            "<",
-            "<=",
-            ">",
-            ">=",
-            "\\+",
-            "-",
-            "\\*",
-            "/",
-            "//",
-            "\\%",
-            "\\*\\*",
-            "\\+=",
-            "-=",
-            "\\*=",
-            "/=",
-            "\\%=",
-            "\\^",
-            "\\|",
-            "\\&",
-            "\\~",
-            ">>",
-            "<<"
-        ],
-        "braces": [
-            "\\{",
-            "\\}",
-            "\\(",
-            "\\)",
-            "\\[",
-            "\\]"
         ]
     },
     "colours": {
-        "numbers": [
-            "#dddddd",
-            "default"
-        ],
-        "keyword": [
-            "#ff8000",
-            "default"
-        ],
-        "operator": [
-            "red",
-            "default"
-        ],
-        "fg": "#dddddd",
-        "string2": [
-            "#02ff02",
-            "default"
-        ],
-        "bg": "#333333",
-        "light": "#555555",
-        "dark": "#2d2d2d",
-        "string": [
-            "#02ff02",
-            "default"
-        ],
-        "self": [
-            "#dddddd",
-            "italic"
-        ],
         "builtin": [
             "#ff00ff",
             "default"
@@ -132,12 +104,40 @@
             "#107f2f",
             "italic"
         ],
+        "defclass": [
+            "#5e5eff",
+            "default"
+        ],
+        "numbers": [
+            "#dddddd",
+            "default"
+        ],
+        "dark": "#2d2d2d",
+        "keyword": [
+            "#ff8000",
+            "default"
+        ],
+        "operator": [
+            "red",
+            "default"
+        ],
+        "self": [
+            "#dddddd",
+            "italic"
+        ],
+        "string2": [
+            "#02ff02",
+            "default"
+        ],
         "brace": [
             "darkGray",
             "default"
         ],
-        "defclass": [
-            "#5e5eff",
+        "fg": "#dddddd",
+        "bg": "#333333",
+        "light": "#555555",
+        "string": [
+            "#02ff02",
             "default"
         ]
     }
