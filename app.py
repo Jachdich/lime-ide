@@ -7,7 +7,7 @@ import gui, net
 from constants import *
 from stylesheets import QMainWindowStyle, QMenuStyle
 
-HOST = "127.0.0.1"
+HOST = "cospox.com"
 
 #main window class
 class Window(QtWidgets.QMainWindow):
@@ -51,6 +51,7 @@ class Window(QtWidgets.QMainWindow):
         self.me_stop = QtWidgets.QAction("Stop running on server", self)
         self.me_stop.triggered.connect(self.stop_running)
         self.me_stop.setShortcut("f1")
+        self.m_run.addAction(self.me_stop)
         self.m_run.addAction(self.me_stop)
 
         self.main = QtWidgets.QWidget()
