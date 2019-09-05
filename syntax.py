@@ -95,14 +95,14 @@ class PythonHighlighter(QtGui.QSyntaxHighlighter):
             
             # 'self'
             (r'\bself\b', 0, STYLES['self']),
-        
-            # From '#' until a newline
-            (r'#[^\n]*', 0, STYLES['comment']),
 
             # Double-quoted string, possibly containing escape sequences
             (r'"[^"\\]*(\\.[^"\\]*)*"', 0, STYLES['string']),
             # Single-quoted string, possibly containing escape sequences
             (r"'[^'\\]*(\\.[^'\\]*)*'", 0, STYLES['string']),
+                    
+            # From '#' until a newline
+            (r'#[^\n]*', 0, STYLES['comment']),
 
         ]
 

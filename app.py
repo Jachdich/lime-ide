@@ -1,5 +1,5 @@
 #import Python standard libraries + PyQt5
-import sys, os, json, threading
+import sys, os, json, threading, webbrowser
 from PyQt5 import QtCore, QtWidgets, QtGui
 
 #import helper files
@@ -26,7 +26,7 @@ class Window(QtWidgets.QMainWindow):
         self.m_edit= self.menu.addMenu("&Edit")
         self.m_server = self.menu.addMenu("&Server")
         self.m_run = self.menu.addMenu("&Run")
-        self.m_view = self.menu.addMenu("&View")
+        self.m_options = self.menu.addMenu("&Options")
         self.m_help = self.menu.addMenu("&Help")
 
         self.setStyleSheet(QMainWindowStyle)
@@ -54,6 +54,14 @@ class Window(QtWidgets.QMainWindow):
         self.m_run.addAction(self.me_stop)
         self.m_run.addAction(self.me_stop)
 
+        self.me_options = QtWidgets.QAction("Options", self)
+        self.me_options.triggered.connect(self.options)
+        self.m_options.addAction(self.me_options)
+        
+        self.me_GitHub = QtWidgets.QAction("GitHub", self)
+        self.me_GitHub.triggered.connect(self.GitHub)
+        self.m_help.addAction(self.me_GitHub)
+
         self.main = QtWidgets.QWidget()
         self.layout = QtWidgets.QHBoxLayout(self.main)
 
@@ -80,7 +88,6 @@ class Window(QtWidgets.QMainWindow):
         self.main.setLayout(self.layout)
         self.setCentralWidget(self.main)
         self.show()
-        self.sss = gui.SettingsDialog()
 
     def run_remote(self):
         self.net.send_data({"request": "run", "value": self.strip_star(self.current_file)})
@@ -161,6 +168,12 @@ class Window(QtWidgets.QMainWindow):
     def save_config(self):
         with open(config, "w") as f:
             f.write(json.dumps(self.config))
+
+    def GitHub(self):
+        webbrowser.open("https://github.com/Jachdich/lime-ide")
+
+    def options(self):
+        self.sss = gui.SettingsDialog()
 
 if __name__ == "__main__":
     QtWidgets.QApplication.setStyle(QtWidgets.QStyleFactory.create("Fusion"))
