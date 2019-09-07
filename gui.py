@@ -83,7 +83,14 @@ class FileMenu(QtWidgets.QWidget):
 
         for i, file in enumerate(self.entry_list):
             if self.entry_list[file] == {}:
-                self.m.appendRow(QtGui.QStandardItem(QtGui.QIcon(icon_file), file))
+                ext = file[file.rfind(".") + 1:]
+                if ext in icons:
+                    icon = icons[ext] 
+                else:
+                    icon = "_blank.png"
+                icon = os.path.join(resource_path, icon)
+                self.m.appendRow(QtGui.QStandardItem(QtGui.QIcon(icon), file))
+                
             else:
                 t = self.get_folder_contents(self.entry_list[file], file)
                 self.m.appendRow(t)
@@ -107,7 +114,13 @@ class FileMenu(QtWidgets.QWidget):
                     item.setData(True, QtCore.Qt.UserRole)
                     t.appendRow(item)
                 else:
-                    item = QtGui.QStandardItem(QtGui.QIcon(icon_file), f)
+                    ext = f[f.rfind(".") + 1:]
+                    if ext in icons:
+                        icon = icons[ext] 
+                    else:
+                        icon = "_blank.png"
+                    icon = os.path.join(resource_path, icon)
+                    item = QtGui.QStandardItem(QtGui.QIcon(icon), f)
                     item.setData(False, QtCore.Qt.UserRole)
                     t.appendRow(item)
             return t
