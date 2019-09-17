@@ -247,6 +247,9 @@ class Dialog(QtWidgets.QMainWindow):
 class AppearanceTab(QtWidgets.QWidget):
     def __init__(self, initialX=600, initialY=400):
         super().__init__()
+
+        self.colours = {"builtin": None}
+        
         self.tabs = QtWidgets.QTabWidget(self)
         self.tabs.setStyleSheet(QTabWidgetStyle)
         self.layout = QtWidgets.QGridLayout()
@@ -294,8 +297,18 @@ class AppearanceTab(QtWidgets.QWidget):
 
         self.l_builtin_colour = QtWidgets.QLabel(self)
         self.l_builtin_colour.setText("Builtin colour")
-        self.l_builtin_colour.setStyleSheet("QLabel { background-color: red; }")
         self.tab_syntax_layout.addWidget(self.l_builtin_colour, 0, 2)
+
+        self.b_builtin_colour = QtWidgets.QPushButton(self)
+        self.b_builtin_colour.setText("asdf movie")
+        self.b_builtin_colour.clicked.connect(self.get_builtin_colour)
+        self.tab_syntax_layout.addWidget(self.b_builtin_colour, 1, 2)
+
+    def get_builtin_colour(self):
+        colour = QtWidgets.QColorDialog.getColor()
+        hex_colour = hex(colour.rgb())[2:]
+        self.b_builtin_colour.setStyleSheet("QPushButton {{ color: #{}; }}".format(hex_colour))
+        self.colours["builtin"] = ["#" + hex_colour, "normal"]
 
     def apply(self):
         keywords = self.t_keyw.toPlainText().replace(" ", "")
@@ -309,6 +322,10 @@ class AppearanceTab(QtWidgets.QWidget):
         builtins = builtins.split(",")
         self.styles["words"]["builtins"] = builtins
         self.styles["words"]["keywords"] = keywords
+        for key in self.colours:
+            if self.colours[key] == None: continue
+            self.styles["colours"][key] = self.colours[key]
+            
         with open("styles.json", "w") as f:
             f.write(json.dumps(self.styles, sort_keys=False, indent=4))
             """
