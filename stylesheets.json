@@ -116,6 +116,34 @@ QTabBar {{
 
 QPlainTextStyle
 """
+QScrollBar:vertical {{
+    border: 2px solid {dark};
+    border-right: 1px solid {dark};
+    background: {bg};
+    width: 15px;
+    margin: 0px 0px 0px 0px;
+}}
+
+QScrollBar::handle:vertical {{
+    background: {light};
+    min-height: 20px;
+}}
+
+QScrollBar::add-line:vertical {{
+    border: 0px solid {dark};
+    background: {bg};
+    height: 0px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}}
+
+QScrollBar::sub-line:vertical {{
+    border: 0px solid {dark};
+    background: {bg};
+    height: 0px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}}
 QPlainTextEdit {{
     background-color: {bg};
     color: {fg};
