@@ -1,6 +1,9 @@
 #import Python standard libraries + PyQt5
 import sys, os, json, threading, webbrowser
 from PyQt5 import QtCore, QtWidgets, QtGui
+from interpreters.befunge import befunge_debug
+
+mode = "befunge"
 
 #import helper files
 import gui, net
@@ -15,6 +18,7 @@ class Window(QtWidgets.QMainWindow):
         self.cache = {}
         self.data = ""
         self.current_file = ""
+        self.b_step = None
         self.net = net.NetworkHandler(HOST, PORT)
         self.init_GUI()
 
@@ -50,7 +54,11 @@ class Window(QtWidgets.QMainWindow):
         self.me_stop.triggered.connect(self.stop_running)
         self.me_stop.setShortcut("f1")
         self.m_run.addAction(self.me_stop)
-        self.m_run.addAction(self.me_stop)
+        
+        self.me_debug = QtWidgets.QAction("Debug", self)
+        self.me_debug.triggered.connect(self.debug_program)
+        self.me_debug.setShortcut("f4")
+        self.m_run.addAction(self.me_debug)
 
         self.me_options = QtWidgets.QAction("Options", self)
         self.me_options.triggered.connect(self.options)
@@ -71,22 +79,67 @@ class Window(QtWidgets.QMainWindow):
         self.file_list.item_changed.connect(self.send_file_request)
         self.file_list.item_renamed.connect(self.rename_file)
         self.splitter.addWidget(self.file_list)
-
-        self.main_text = gui.HighlightedTextBox(self)
-        self.main_text.setPlainText(self.data)
-        self.main_text.textChanged.connect(self.update_file_contents)
-        self.splitter.addWidget(self.main_text)
         
         self.splitter.splitterMoved[int, int].connect(self.splitter_moved)
         self.splitter.setSizes(self.config["splitter0"])
 
         #fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', '/bin/',"Image files (*.jpg *.gif)")
 
+        self.init_GUI_modes()
+        
         self.layout.addWidget(self.splitter)
         self.main.setLayout(self.layout)
         self.setCentralWidget(self.main)
         self.show()
 
+    def init_GUI_modes(self):
+        #init the bits of the GUI that differ depending on the mode
+        if mode == "python":
+            self.main_text = gui.HighlightedTextBox(self)
+            self.main_text.setPlainText(self.data)
+            self.main_text.textChanged.connect(self.update_file_contents)
+            self.splitter.addWidget(self.main_text)
+
+##            self.m_language = self.menu.addMenu("&Python")
+##            self.me_tocome = QtWidgets.QAction("To Come!", self)
+##            self.m_language.addAction(self.me_tocome)
+            
+        elif mode == "befunge":
+            self.main_text = gui.BefungeTextBox(self)
+            self.main_text.setPlainText(self.data)
+            self.main_text.textChanged.connect(self.update_file_contents)
+            self.splitter.addWidget(self.main_text)
+
+    def show_debug_gui(self):
+        self.b_step = QtWidgets.QPushButton("Step", self)
+        self.b_step.clicked.connect(self.debug_step)
+        self.b_exit = QtWidgets.QPushButton("Exit", self)
+        self.b_exit.clicked.connect(self.stop_debugging)
+        self.layout.addWidget(self.b_step)
+        self.layout.addWidget(self.b_exit)
+        self.main_text.setReadOnly(True)
+
+    def stop_debugging(self):
+        self.layout.removeWidget(self.b_step)
+        self.layout.removeWidget(self.b_exit)
+        self.b_exit.deleteLater()
+        self.b_step.deleteLater()
+        self.b_step = None
+        self.b_exit = None
+        self.debugger.cleanUp()
+        self.debugger = None
+        self.main_text.setReadOnly(False)
+
+    def debug_step(self):
+        self.debugger.debug_step()
+            
+    def debug_program(self):
+        if mode == "python":
+            print("Python debugging not yet supported")
+        elif mode == "befunge":
+            self.debugger = befunge_debug.Debugger(self.main_text)
+            self.show_debug_gui()
+    
     def run_remote(self):
         self.net.send_data({"request": "run", "value": self.strip_star(self.current_file)})
 

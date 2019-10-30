@@ -135,17 +135,18 @@ class FileMenu(QtWidgets.QWidget):
         return dct
 
 class HighlightedTextBox(QtWidgets.QPlainTextEdit):
-    def __init__(self, parent):
+    def __init__(self, parent, doSetup=True):
         super().__init__()
 
-        self.last_key_backspace = False
-        self.inserted_by_user = True
-        self.parent = parent
-        
-        self.setStyleSheet(QPlainTextStyle)
+        if doSetup:
+            self.last_key_backspace = False
+            self.inserted_by_user = True
+            self.parent = parent
+            
+            self.setStyleSheet(QPlainTextStyle)
 
-        self.syntax = syntax.PythonHighlighter(self.document())
-        needs_to_be_updated.append(self)
+            self.syntax = syntax.PythonHighlighter(self.document())
+            needs_to_be_updated.append(self)
         
     def add_indent(self):
         if self.last_key_backspace or not self.inserted_by_user:
@@ -414,3 +415,16 @@ class LocalRunDialog(TextDialog):
         self.kill_process()
         event.accept()
             
+class BefungeTextBox(HighlightedTextBox):
+    def __init__(self, parent):
+        super().__init__(parent, False)
+
+        #self.syntax = syntax.PythonHighlighter(self.document())
+        self.setStyleSheet(QPlainTextStyle)
+        needs_to_be_updated.append(self)
+        
+    def add_indent(self):
+        pass #no auto indent needed for befunge
+
+    def get_indent_level(self, text):
+        pass #no auto indent needed for befunge
