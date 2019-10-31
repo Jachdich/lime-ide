@@ -1,4 +1,6 @@
-import sys, random, time, threading
+import sys, random, time, threading, socket
+from constants import DEBUGGER_PORT
+import logger
 
 def matrixise(code):
     matrix = []
@@ -32,16 +34,14 @@ class Interpreter:
         self.stringMode = False
         self.stack = []
         self.buffer = ""
-        self.uuid = str(time.time()) + str(random.randint(0, 1000))
+        self.setup_socket()
 
     def debug_step(self):
         self.step()
         return self.ip
     
     def step(self):
-        #self.debugprint()
         curr_char = self.m[self.ip[0]][self.ip[1]]
-        #print(curr_char + ", " + str(self.stack))
         if self.stringMode and not curr_char == "\"":
             self.stack.append(ord(curr_char))
         elif curr_char.isdigit():
@@ -63,8 +63,6 @@ class Interpreter:
             elif curr_char == ",":
                 a = chr(self.pop())
                 self.buffer += a
-                if a == "\n":
-                    self.flush()
 
             elif curr_char == "&":
                 self.flush()
@@ -145,7 +143,6 @@ class Interpreter:
                     self.m[y][x] = v
 
             elif curr_char == "~":
-                self.flush()
                 inp = input("Enter a character: ")
                 while len(inp) != 1:
                     inp = input("Enter a character: ")
@@ -187,34 +184,26 @@ class Interpreter:
                     self.direction = "up"
                     
             elif curr_char == "@":
-                self.flush()
-                time.sleep(3)
                 self.running = False
                 return
             
         self.move_pc()
         
     def flush(self):
-        with open(self.uuid, "w") as f:
-            f.write(self.buffer)
-        self.buffer = ""
+        while self.running:
+            conn, addr = self.s.accept()
+            logger.log("debug", "Accepted befunge output socket connection from address " + str(addr))
+            conn.send(self.buffer.encode("utf-8"))
+            logger.log("debug", "Sent '{}' to address {} as befunge output".format(self.buffer, addr))
+            conn.close()
+        self.s.close()
+        logger.log("debug", "Befunge output socket closed successfully")
 
     def pop(self):
         try:
             return self.stack.pop()
         except:
             return 0
-
-    def debugprint(self):
-        out = ""
-        for y, row in enumerate(self.m):
-            for x, col in enumerate(row):
-                if x == self.ip[1] and y == self.ip[0]:
-                    out += '\x1b[6;30;42m' + col + '\x1b[0m'
-                else:
-                    out += colored(col, "white")
-            out += "\n"
-        print(out)
 
     def move_pc(self):
         if self.direction == "right":
@@ -234,6 +223,13 @@ class Interpreter:
     def runWrapper(self):
         while self.running:
             self.step()
+
+    def setup_socket(self):
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.bind(("0.0.0.0", DEBUGGER_PORT))
+        self.s.listen(1)
+        self.sock_thread = threading.Thread(target=self.flush)
+        self.sock_thread.start()
 
 ##i = Interpreter(""""t"44p44g,@""")
 ##for a in i.run():

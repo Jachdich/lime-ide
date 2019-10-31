@@ -2,13 +2,14 @@
 import sys, os, json, threading, webbrowser
 from PyQt5 import QtCore, QtWidgets, QtGui
 from interpreters.befunge import befunge_debug
+import logger
 
 mode = "befunge"
 
 #import helper files
 import gui, net
 from constants import *
-from stylesheets import QMainWindowStyle, QMenuStyle
+from stylesheets import QMainWindowStyle, QMenuStyle, QPlainTextStyle, QWidgetStyle
 
 #main window class
 class Window(QtWidgets.QMainWindow):
@@ -20,9 +21,64 @@ class Window(QtWidgets.QMainWindow):
         self.current_file = ""
         self.b_step = None
         self.net = net.NetworkHandler(HOST, PORT)
+        logger.log("debug", "Network handler created")
         self.init_GUI()
 
     def init_GUI(self):
+        self.initMenus()
+        
+        self.main = QtWidgets.QWidget()
+        self.layout = QtWidgets.QVBoxLayout(self.main)
+        self.main.setLayout(self.layout)
+
+        self.file_splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
+        self.text_splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
+        
+        dct = self.get_file_structure()
+
+        self.file_list = gui.FileMenu(self, dct["."])
+        self.file_list.item_changed.connect(self.send_file_request)
+        self.file_list.item_renamed.connect(self.rename_file)
+        self.file_splitter.addWidget(self.file_list)
+        
+        self.text_splitter.splitterMoved[int, int].connect(self.text_splitter_moved)
+        self.text_splitter.setSizes(self.config["text_splitter"])
+        self.text_splitter.setSizes([10, 10])
+        
+        self.file_splitter.splitterMoved[int, int].connect(self.file_splitter_moved)
+        self.file_splitter.setSizes(self.config["file_splitter"])
+
+        logger.log("debug", "text_splitter sizes: " + str(self.config["text_splitter"]))
+        logger.log("debug", "file_splitter sizes: " + str(self.config["file_splitter"]))
+
+        #fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', '/bin/',"Image files (*.jpg *.gif)")
+
+        self.init_GUI_modes()
+
+        self.main_text.setPlainText(self.data)
+        self.main_text.textChanged.connect(self.update_file_contents)
+        self.text_splitter.addWidget(self.main_text)
+
+        self.output_text = QtWidgets.QPlainTextEdit(self.main)
+        self.text_splitter.addWidget(self.output_text)
+        self.file_splitter.addWidget(self.text_splitter)
+        
+        self.layout.addWidget(self.file_splitter)
+        self.main.setLayout(self.layout)
+        self.setCentralWidget(self.main)
+        
+        self.applyStyleSheets()
+        logger.log("debug", "Created UI successfully")
+        self.show()
+
+    def applyStyleSheets(self):        
+        self.setStyleSheet(QMainWindowStyle)
+        self.menu.setStyleSheet(QMenuStyle)
+        self.main.setStyleSheet(QWidgetStyle)
+        self.main_text.setStyleSheet(QPlainTextStyle)
+        self.output_text.setStyleSheet(QPlainTextStyle)
+
+    def initMenus(self):
         self.menu = self.menuBar()
         self.m_file = self.menu.addMenu("&File")
         self.m_edit= self.menu.addMenu("&Edit")
@@ -30,10 +86,6 @@ class Window(QtWidgets.QMainWindow):
         self.m_run = self.menu.addMenu("&Run")
         self.m_options = self.menu.addMenu("&Options")
         self.m_help = self.menu.addMenu("&Help")
-
-        self.setStyleSheet(QMainWindowStyle)
-
-        self.menu.setStyleSheet(QMenuStyle)
         
         self.me_save = QtWidgets.QAction("Save", self)
         self.me_save.triggered.connect(self.save_file)
@@ -68,49 +120,16 @@ class Window(QtWidgets.QMainWindow):
         self.me_GitHub.triggered.connect(self.GitHub)
         self.m_help.addAction(self.me_GitHub)
 
-        self.main = QtWidgets.QWidget()
-        self.layout = QtWidgets.QHBoxLayout(self.main)
-
-        self.splitter = QtWidgets.QSplitter()
-        
-        dct = self.get_file_structure()
-
-        self.file_list = gui.FileMenu(self, dct["."])
-        self.file_list.item_changed.connect(self.send_file_request)
-        self.file_list.item_renamed.connect(self.rename_file)
-        self.splitter.addWidget(self.file_list)
-        
-        self.splitter.splitterMoved[int, int].connect(self.splitter_moved)
-        self.splitter.setSizes(self.config["splitter0"])
-
-        #fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', '/bin/',"Image files (*.jpg *.gif)")
-
-        self.init_GUI_modes()
-        
-        self.layout.addWidget(self.splitter)
-        self.main.setLayout(self.layout)
-        self.setCentralWidget(self.main)
-        self.show()
-
     def init_GUI_modes(self):
         #init the bits of the GUI that differ depending on the mode
         if mode == "python":
             self.main_text = gui.HighlightedTextBox(self)
-            self.main_text.setPlainText(self.data)
-            self.main_text.textChanged.connect(self.update_file_contents)
-            self.splitter.addWidget(self.main_text)
-
-##            self.m_language = self.menu.addMenu("&Python")
-##            self.me_tocome = QtWidgets.QAction("To Come!", self)
-##            self.m_language.addAction(self.me_tocome)
             
         elif mode == "befunge":
             self.main_text = gui.BefungeTextBox(self)
-            self.main_text.setPlainText(self.data)
-            self.main_text.textChanged.connect(self.update_file_contents)
-            self.splitter.addWidget(self.main_text)
 
     def show_debug_gui(self):
+        logger.log("debug", "Starting debugging...")
         self.b_step = QtWidgets.QPushButton("Step", self)
         self.b_step.clicked.connect(self.debug_step)
         self.b_exit = QtWidgets.QPushButton("Exit", self)
@@ -120,6 +139,7 @@ class Window(QtWidgets.QMainWindow):
         self.main_text.setReadOnly(True)
 
     def stop_debugging(self):
+        logger.log("debug", "Stopping debugging...")
         self.layout.removeWidget(self.b_step)
         self.layout.removeWidget(self.b_exit)
         self.b_exit.deleteLater()
@@ -132,16 +152,18 @@ class Window(QtWidgets.QMainWindow):
 
     def debug_step(self):
         self.debugger.debug_step()
+        if self.debugger.inter.running == False:
+            self.stop_debugging()
             
     def debug_program(self):
         if mode == "python":
-            print("Python debugging not yet supported")
+            logger.log("error", "Python debugging not yet supported")
         elif mode == "befunge":
-            self.debugger = befunge_debug.Debugger(self.main_text)
+            self.debugger = befunge_debug.Debugger(self.main_text, self.output_text)
             self.show_debug_gui()
     
     def run_remote(self):
-        self.net.send_data({"request": "run", "value": self.strip_star(self.current_file)})
+        self.net.send_data({"language": mode, "request": "run", "value": self.strip_star(self.current_file)})
 
     def stop_running(self):
         self.net.send_data({"request": "stop"})
@@ -174,6 +196,7 @@ class Window(QtWidgets.QMainWindow):
         self.file_list.tree_view.setCurrentIndex(self.file_list.m_proxy.index(r, c))
         
     def save_file(self):
+        logger.log("debug", "Saving file '" + self.strip_star(self.current_file) + "'")
         self.net.send_data({"request": "write_file", "file": self.strip_star(self.current_file), "value": self.data})
         current_index = self.file_list.tree_view.currentIndex()
         r, c = current_index.row(), current_index.column()
@@ -183,17 +206,19 @@ class Window(QtWidgets.QMainWindow):
     def send_file_request(self, file):
         self.current_file = file
         if self.cache.get(file, False): #if it's in the cache...
+            logger.log("debug", "Cache hit on file '" + file + "'")
             self.data = self.cache[file]
             self.update_text()
             return
         
+        logger.log("debug", "Cache miss on file '" + file + "'")
         self.net.send_data({"request": "get_file", "value": self.strip_star(file)})
         result = self.net.recv_data()
         if result["status"] == 0:
             self.data = result["result"]
             self.update_text()
         else:
-            print("[ WAR ]: File request returned non-zero response: " + result["status"])
+            logger.log("warning", "File request returned non-zero response: " + result["status"] + " on file '" + file + "'")
 
     def update_text(self):
         self.main_text.setPlainText(str(self.data))
@@ -208,8 +233,12 @@ class Window(QtWidgets.QMainWindow):
                 p = p.setdefault(x, {})
         return dct
 
-    def splitter_moved(self, pos, index):
-        self.config["splitter0"] = self.splitter.sizes()
+    def text_splitter_moved(self, pos, index):
+        self.config["text_splitter"] = self.text_splitter.sizes()
+        self.save_config()
+
+    def file_splitter_moved(self, pos, index):
+        self.config["file_splitter"] = self.file_splitter.sizes()
         self.save_config()
 
     def open_config(self):

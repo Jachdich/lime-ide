@@ -24,6 +24,7 @@ config = "config.json"
 styles = "styles.json"
 
 PORT = 64452
+DEBUGGER_PORT = 25565
 HOST = "127.0.0.1"
 
 indent_level = 4

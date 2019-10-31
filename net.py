@@ -8,6 +8,7 @@ import subprocess
 from strings import chunkstring
 from sys     import exit
 import sys
+import logger
 
 def connecter_server(HOST, PORT):
     s = None
@@ -28,7 +29,7 @@ def connecter_server(HOST, PORT):
             continue
         break
     if s is None:
-        print("Could not open socket")
+        logger.log("fatal", "Could not open socket")
         exit(1)
     else:
         return s
@@ -50,7 +51,7 @@ def connector_client(addr, port):
             continue
         break
     if s is None:
-        print("[ WAR ]: Could not open socket")
+        logger.log("warning", "Could not open socket")
         return "offline"
     else:
         return s
@@ -60,8 +61,8 @@ class NetworkHandler:
         self.addr = (addr, port)
         self.s = connector_client(addr, port)
         if self.s == "offline":
-            print("[ ERR ]: No route to server")
-            print("[ INF ]: Starting internal server")
+            logger.log("error", "No route to server")
+            logger.log("info", "Starting internal server")
             self.offline = True
             self.server_thread = threading.Thread(target=self.server_listner)
             self.server_thread.start()

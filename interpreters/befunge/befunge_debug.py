@@ -1,18 +1,28 @@
 from PyQt5 import QtGui
 from interpreters.befunge import befunge_interpreter
+from constants import DEBUGGER_PORT, HOST
+import socket
+###TEMP IMPORTS
+import time
+
 class Debugger:
     def __init__(self, textbox, outbox):
         self.inter = befunge_interpreter.Interpreter(textbox.toPlainText())
-        self.handle = self.inter.uuid
         self.textbox = textbox
         self.outbox = outbox
         
     def debug_step(self):
+        a = time.time()
         ip = self.inter.debug_step()
+        print("Step", time.time() - a); a = time.time()
         self.highlight((ip[0], ip[1]))
         self.running = self.inter.running
-        with open(self.handel, "r") as f:
-            self.outbox.setText(f.read())
+        print("highlight", time.time() - a); a = time.time()
+        s = socket.socket()
+        s.connect((HOST, DEBUGGER_PORT))
+        self.outbox.setPlainText(s.recv(1024).decode("utf-8"))
+        s.close()
+        print("file", time.time() - a); a = time.time()
         
     def highlight(self, ip):
         old_format = self.textbox.currentCharFormat()
