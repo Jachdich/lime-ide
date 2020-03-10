@@ -154,12 +154,16 @@ class Connection(threading.Thread):
         try:
             while not self.exit:
                 data = self.recv_data()
-                #print(data)
                 if data == None:
                     break
 
                 elif data["request"] == "rename_file":
-                    os.rename("." + data["from"], data["to"])
+                    try:
+                        os.rename("." + data["from"], data["to"])
+                    except Exception as e:
+                        self.send_data({"status": str(e)})
+                        return
+                    self.send_data({"status", "0"})
                     
                 elif data["request"] == "list":
                     result = [os.path.join(dp, f) for dp, dn, filenames in os.walk(".") for f in filenames]

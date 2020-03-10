@@ -1,10 +1,18 @@
+#TODO
+#fix server, make sure to return status after every request
+#add multiple modes to server
+#debug on server?
+#python debug mode, python run mode needs to be fixed
+#Add mode setting to settings dialogue
+#split gui class
+
 #import Python standard libraries + PyQt5
 import sys, os, json, threading, webbrowser
 from PyQt5 import QtCore, QtWidgets, QtGui
 from interpreters.befunge import befunge_debug
 import logger
 
-mode = "befunge"
+mode = "python"
 
 #import helper files
 import gui, net
@@ -26,6 +34,7 @@ class Window(QtWidgets.QMainWindow):
 
     def init_GUI(self):
         self.initMenus()
+        logger.log("debug", "Menus initialised")
         
         self.main = QtWidgets.QWidget()
         self.layout = QtWidgets.QVBoxLayout(self.main)
@@ -71,7 +80,8 @@ class Window(QtWidgets.QMainWindow):
         logger.log("debug", "Created UI successfully")
         self.show()
 
-    def applyStyleSheets(self):        
+    def applyStyleSheets(self):
+        logger.log("debug", "Applying stylesheets...")
         self.setStyleSheet(QMainWindowStyle)
         self.menu.setStyleSheet(QMenuStyle)
         self.main.setStyleSheet(QWidgetStyle)
@@ -159,18 +169,22 @@ class Window(QtWidgets.QMainWindow):
         if mode == "python":
             logger.log("error", "Python debugging not yet supported")
         elif mode == "befunge":
+            logger.log("Attempting to debug befunge program...")
             self.debugger = befunge_debug.Debugger(self.main_text, self.output_text)
             self.show_debug_gui()
     
     def run_remote(self):
+        logger.log("debug", "Attempting to run " + mode + " program on remote server '" + constants.HOST + "'")
         self.net.send_data({"language": mode, "request": "run", "value": self.strip_star(self.current_file)})
 
     def stop_running(self):
+        logger.log("debug", "Attempting to stop running on remote server '" + constants.HOST + "'")
         self.net.send_data({"request": "stop"})
-        to_print = self.net.recv_data()["print"]
+        to_print = self.net.recv_data()["print"] #TODO fix
         text_dialog = gui.TextDialog(to_print)
 
     def run_locally(self):
+        logger.log("debug", "Attempting to run " + mode + " locally...")
         run_dialog = gui.LocalRunDialog(self.net, self.strip_star(self.current_file))
         run_dialog.run()
 
@@ -180,6 +194,7 @@ class Window(QtWidgets.QMainWindow):
         return file
     
     def rename_file(self, item):
+        logger.log("debug", "Requesting rename of '{}' to '{}'".format(self.strip_star(self.current_file), item))
         self.net.send_data({"request": "rename_file", "from": self.strip_star(self.current_file), "to": item})
         self.cache[item] = self.cache[self.current_file]
         self.cache[self.current_file] = None
@@ -260,5 +275,8 @@ if __name__ == "__main__":
     print(QtWidgets.QStyleFactory.keys())
     app = QtWidgets.QApplication(sys.argv)
     win = Window()
-    print(app.exec_())
+    status = app.exec_()
+    logger.log(logger.INFO, "Process exited with code " + str(status))
     win.net.close()
+    logger.log(logger.INFO, "Closed network socket")
+    sys.exit(status)

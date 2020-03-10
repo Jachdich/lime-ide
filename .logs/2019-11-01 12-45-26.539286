@@ -1,0 +1,7 @@
+[01/11 12:45:26] [ WARN  ]: Could not open socket
+[01/11 12:45:26] [ ERROR ]: No route to server
+[01/11 12:45:26] [ INFO  ]: Starting internal server
+[01/11 12:45:27] [ DEBUG ]: Network handler created
+[01/11 12:45:29] [ DEBUG ]: text_splitter sizes: [0, 381]
+[01/11 12:45:29] [ DEBUG ]: file_splitter sizes: [202, 1145]
+[01/11 12:45:29] [ DEBUG ]: Created UI successfully

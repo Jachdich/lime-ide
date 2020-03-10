@@ -262,17 +262,17 @@ class AppearanceTab(QtWidgets.QWidget):
         self.tab_syntax.setLayout(self.tab_syntax_layout)
         self.tabs.addTab(self.tab_syntax, "Syntax")
 
-        self.tab_server = QtWidgets.QWidget()
-        self.tab_server.setStyleSheet(QWidgetStyle)
-        self.tab_server_layout = QtWidgets.QGridLayout()
-        self.tab_server.setLayout(self.tab_server_layout)
-        self.tabs.addTab(self.tab_server, "Server")
+        self.tab_interface = QtWidgets.QWidget()
+        self.tab_interface.setStyleSheet(QWidgetStyle)
+        self.tab_interface_layout = QtWidgets.QGridLayout()
+        self.tab_interface.setLayout(self.tab_interface_layout)
+        self.tabs.addTab(self.tab_interface, "Interface")
 
-        self.tab_appearance1 = QtWidgets.QWidget()
-        self.tab_appearance1.setStyleSheet(QWidgetStyle)
-        self.tab_appearance1_layout = QtWidgets.QGridLayout()
-        self.tab_appearance1.setLayout(self.tab_appearance1_layout)
-        self.tabs.addTab(self.tab_appearance1, "Old")
+        self.tab_ssheets = QtWidgets.QWidget()
+        self.tab_ssheets.setStyleSheet(QWidgetStyle)
+        self.tab_ssheets_layout = QtWidgets.QGridLayout()
+        self.tab_ssheets.setLayout(self.tab_ssheets_layout)
+        self.tabs.addTab(self.tab_ssheets, "Stylesheets")
 
         self.init_tabs()
         self.resize(initialX, initialY)
@@ -289,26 +289,55 @@ class AppearanceTab(QtWidgets.QWidget):
         self.tab_syntax_layout.addWidget(self.l_keyw, 0, 0)
         self.tab_syntax_layout.addWidget(self.t_keyw, 1, 0)
 
+        self.builtin_selection_layout = QtWidgets.QHBoxLayout()
+
         self.l_builtin = QtWidgets.QLabel(self)
         self.t_builtin = HighlightedTextBox(self)
         self.t_builtin.insertPlainText(", ".join(self.styles["words"]["builtins"]))
         self.l_builtin.setText("Builtins")
-        self.tab_syntax_layout.addWidget(self.l_builtin, 0, 1)
+        self.builtin_selection_layout.addWidget(self.l_builtin)
         self.tab_syntax_layout.addWidget(self.t_builtin, 1, 1)
 
-        self.l_builtin_colour = QtWidgets.QLabel(self)
-        self.l_builtin_colour.setText("Builtin colour")
-        self.tab_syntax_layout.addWidget(self.l_builtin_colour, 0, 2)
-
         self.b_builtin_colour = QtWidgets.QPushButton(self)
-        self.b_builtin_colour.setText("asdf movie")
+        self.b_builtin_colour.setMaximumWidth(16)
         self.b_builtin_colour.clicked.connect(self.get_builtin_colour)
-        self.tab_syntax_layout.addWidget(self.b_builtin_colour, 1, 2)
+        self.b_builtin_colour.setStyleSheet("background-color: {}; border: 1px solid #000000;".format(self.styles["colours"]["builtin"][0]))
+        self.builtin_selection_layout.addWidget(self.b_builtin_colour)
+
+        self.tab_syntax_layout.addLayout(self.builtin_selection_layout, 0, 1)
+
+        #interface style
+
+        self.l_foreground = QtWidgets.QLabel("Foreground", self)
+        self.l_background = QtWidgets.QLabel("Background", self)
+        self.l_light_background = QtWidgets.QLabel("Light background", self)
+        self.l_dark_background = QtWidgets.QLabel("Dark  background", self)
+
+        self.b_bg_colour = QtWidgets.QPushButton(self)
+        self.b_bg_colour.setMaximumWidth(16)
+        #self.b_builtin_colour.clicked.connect(self.get_builtin_colour)
+        self.b_bg_colour.setStyleSheet("background-color: {}; border: 1px solid #000000;".format(self.styles["colours"]["bg"]))
+
+        self.b_fg_colour = QtWidgets.QPushButton(self)
+        self.b_fg_colour.setMaximumWidth(16)
+        #self.b_builtin_colour.clicked.connect(self.get_builtin_colour)
+        self.b_fg_colour.setStyleSheet("background-color: {}; border: 1px solid #000000;".format(self.styles["colours"]["fg"]))
+
+        self.tab_interface_layout.addWidget(self.l_foreground, 0, 0)
+        self.tab_interface_layout.addWidget(self.l_background, 1, 0)
+        self.tab_interface_layout.addWidget(self.l_light_background, 2, 0)
+        self.tab_interface_layout.addWidget(self.l_dark_background, 3, 0)
+
+        self.tab_interface_layout.addWidget(self.b_fg_colour, 0, 1)
+        self.tab_interface_layout.addWidget(self.b_bg_colour, 1, 1)
+        #self.tab_interface_layout.addWidget(self.b_light_bg_colour, 2, 1)
+        #self.tab_interface_layout.addWidget(self.b_light_bg_colour, 3, 1)
+        
 
     def get_builtin_colour(self):
         colour = QtWidgets.QColorDialog.getColor()
         hex_colour = hex(colour.rgb())[2:]
-        self.b_builtin_colour.setStyleSheet("QPushButton {{ color: #{}; }}".format(hex_colour))
+        self.b_builtin_colour.setStyleSheet("background-color: #{}; border: 1px solid #000000;".format(hex_colour))
         self.colours["builtin"] = ["#" + hex_colour, "normal"]
 
     def apply(self):

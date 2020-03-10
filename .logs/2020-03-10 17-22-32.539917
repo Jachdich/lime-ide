@@ -1,0 +1,11 @@
+[10/03 17:22:32] [ WARN  ]: Could not open socket
+[10/03 17:22:32] [ ERROR ]: No route to server
+[10/03 17:22:32] [ INFO  ]: Starting internal server
+[10/03 17:22:33] [ DEBUG ]: Network handler created
+[10/03 17:22:33] [ DEBUG ]: Menus initialised
+[10/03 17:22:35] [ DEBUG ]: text_splitter sizes: [635, 92]
+[10/03 17:22:35] [ DEBUG ]: file_splitter sizes: [178, 1166]
+[10/03 17:22:35] [ DEBUG ]: Applying stylesheets...
+[10/03 17:22:35] [ DEBUG ]: Created UI successfully
+[10/03 17:23:18] [ INFO  ]: Process exited with code 0
+[10/03 17:23:18] [ INFO  ]: Closed network socket

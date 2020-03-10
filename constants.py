@@ -1,4 +1,5 @@
 from os.path import join
+from datetime import datetime
 resource_path = "resources"
 icon_folder = join(resource_path, "folder.png")
 
@@ -28,3 +29,4 @@ DEBUGGER_PORT = 25565
 HOST = "127.0.0.1"
 
 indent_level = 4
+current_logfile = str(datetime.now()).replace(":", "-")

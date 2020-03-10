@@ -1,0 +1,12 @@
+[01/11 12:44:15] [ WARN  ]: Could not open socket
+[01/11 12:44:15] [ ERROR ]: No route to server
+[01/11 12:44:15] [ INFO  ]: Starting internal server
+[01/11 12:44:16] [ DEBUG ]: Network handler created
+[01/11 12:44:18] [ DEBUG ]: text_splitter sizes: [0, 381]
+[01/11 12:44:18] [ DEBUG ]: file_splitter sizes: [202, 1145]
+[01/11 12:44:18] [ DEBUG ]: Created UI successfully
+[01/11 12:44:20] [ DEBUG ]: Cache miss on file '/stylesheets.json'
+[01/11 12:44:21] [ DEBUG ]: Cache miss on file '/styles.json'
+[01/11 12:44:22] [ DEBUG ]: Cache hit on file '/stylesheets.json'
+[01/11 12:44:23] [ DEBUG ]: Cache miss on file '/resources'
+[01/11 12:44:23] [ WARN  ]: File request returned non-zero response: [Errno 21] Is a directory: './resources' on file '/resources'
