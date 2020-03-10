@@ -127,6 +127,7 @@ QScrollBar:vertical {{
 QScrollBar::handle:vertical {{
     background: {light};
     min-height: 20px;
+    border-radius: 5px;
 }}
 
 QScrollBar::add-line:vertical {{

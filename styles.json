@@ -97,8 +97,8 @@
     },
     "colours": {
         "builtin": [
-            "#ffff0000",
-            "normal"
+            "#ff00ff",
+            "default"
         ],
         "comment": [
             "#107f2f",

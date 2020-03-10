@@ -5,6 +5,8 @@
 #python debug mode, python run mode needs to be fixed
 #Add mode setting to settings dialogue
 #split gui class
+#crash if type when no document open
+#FIX THE DAMN BLODDY STYLESHEETS + MAKE IT SIMPLER (i.e. one stylesheet applied to all...?)
 
 #import Python standard libraries + PyQt5
 import sys, os, json, threading, webbrowser

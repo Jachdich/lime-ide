@@ -3,7 +3,7 @@ from constants   import *
 from stylesheets import QTreeViewStyle, QVScrollbarStyle, QHScrollbarStyle, QTabWidgetStyle
 from stylesheets import QPlainTextStyle, QTreeViewHeaderStyle, QMainWindowStyle, QWidgetStyle
 from strings     import run_file
-import os, syntax, threading, subprocess, json
+import os, syntax, threading, subprocess, json, logger
 from sys import exit
 
 needs_to_be_updated = []
@@ -248,6 +248,7 @@ class Dialog(QtWidgets.QMainWindow):
 class AppearanceTab(QtWidgets.QWidget):
     def __init__(self, initialX=600, initialY=400):
         super().__init__()
+        logger.log(logger.DEBUG, "Starting AppearanceTab GUI construction...")
 
         self.colours = {"builtin": None}
         
@@ -276,6 +277,7 @@ class AppearanceTab(QtWidgets.QWidget):
 
         self.init_tabs()
         self.resize(initialX, initialY)
+        logger.log(logger.DEBUG, "AppearanceTab GUI construction complete")
 
     def init_tabs(self):
         with open("styles.json", "r") as f:
@@ -300,7 +302,7 @@ class AppearanceTab(QtWidgets.QWidget):
 
         self.b_builtin_colour = QtWidgets.QPushButton(self)
         self.b_builtin_colour.setMaximumWidth(16)
-        self.b_builtin_colour.clicked.connect(self.get_builtin_colour)
+        self.b_builtin_colour.clicked.connect(lambda: self.change_syntax_colour("builtin", self.b_builtin_colour))
         self.b_builtin_colour.setStyleSheet("background-color: {}; border: 1px solid #000000;".format(self.styles["colours"]["builtin"][0]))
         self.builtin_selection_layout.addWidget(self.b_builtin_colour)
 
@@ -315,32 +317,50 @@ class AppearanceTab(QtWidgets.QWidget):
 
         self.b_bg_colour = QtWidgets.QPushButton(self)
         self.b_bg_colour.setMaximumWidth(16)
-        #self.b_builtin_colour.clicked.connect(self.get_builtin_colour)
+        self.b_bg_colour.clicked.connect(lambda: self.change_colour("bg", self.b_bg_colour))
         self.b_bg_colour.setStyleSheet("background-color: {}; border: 1px solid #000000;".format(self.styles["colours"]["bg"]))
 
         self.b_fg_colour = QtWidgets.QPushButton(self)
         self.b_fg_colour.setMaximumWidth(16)
-        #self.b_builtin_colour.clicked.connect(self.get_builtin_colour)
+        self.b_fg_colour.clicked.connect(lambda: self.change_colour("fg", self.b_fg_colour))
         self.b_fg_colour.setStyleSheet("background-color: {}; border: 1px solid #000000;".format(self.styles["colours"]["fg"]))
+
+        self.b_light_bg_colour = QtWidgets.QPushButton(self)
+        self.b_light_bg_colour.setMaximumWidth(16)
+        self.b_light_bg_colour.clicked.connect(lambda: self.change_colour("light", self.b_light_bg_colour))
+        self.b_light_bg_colour.setStyleSheet("background-color: {}; border: 1px solid #000000;".format(self.styles["colours"]["light"]))
+
+        self.b_dark_bg_colour = QtWidgets.QPushButton(self)
+        self.b_dark_bg_colour.setMaximumWidth(16)
+        self.b_dark_bg_colour.clicked.connect(lambda: self.change_colour("dark", self.b_dark_bg_colour))
+        self.b_dark_bg_colour.setStyleSheet("background-color: {}; border: 1px solid #000000;".format(self.styles["colours"]["dark"]))
 
         self.tab_interface_layout.addWidget(self.l_foreground, 0, 0)
         self.tab_interface_layout.addWidget(self.l_background, 1, 0)
         self.tab_interface_layout.addWidget(self.l_light_background, 2, 0)
         self.tab_interface_layout.addWidget(self.l_dark_background, 3, 0)
 
-        self.tab_interface_layout.addWidget(self.b_fg_colour, 0, 1)
-        self.tab_interface_layout.addWidget(self.b_bg_colour, 1, 1)
-        #self.tab_interface_layout.addWidget(self.b_light_bg_colour, 2, 1)
-        #self.tab_interface_layout.addWidget(self.b_light_bg_colour, 3, 1)
-        
+        self.tab_interface_layout.addWidget(self.b_fg_colour,       0, 1)
+        self.tab_interface_layout.addWidget(self.b_bg_colour,       1, 1)
+        self.tab_interface_layout.addWidget(self.b_light_bg_colour, 2, 1)
+        self.tab_interface_layout.addWidget(self.b_dark_bg_colour, 3, 1)
 
-    def get_builtin_colour(self):
+    def change_colour(self, name, button):
         colour = QtWidgets.QColorDialog.getColor()
         hex_colour = hex(colour.rgb())[2:]
-        self.b_builtin_colour.setStyleSheet("background-color: #{}; border: 1px solid #000000;".format(hex_colour))
-        self.colours["builtin"] = ["#" + hex_colour, "normal"]
+        button.setStyleSheet("background-color: #{}; border: 1px solid #000000;".format(hex_colour))
+        self.colours[name] = "#" + hex_colour
+        logger.log(logger.INFO, name + " colour changed to #" + hex_colour)
 
+    def change_syntax_colour(self, name, button):
+        colour = QtWidgets.QColorDialog.getColor()
+        hex_colour = hex(colour.rgb())[2:]
+        button.setStyleSheet("background-color: #{}; border: 1px solid #000000;".format(hex_colour))
+        self.colours[name] = ["#" + hex_colour, "normal"]
+        logger.log(logger.INFO, name + " colour changed to #" + hex_colour)
+ 
     def apply(self):
+        logger.log(logger.DEBUG, "Starting apply of settings")
         keywords = self.t_keyw.toPlainText().replace(" ", "")
         if keywords.endswith(","):
             keywords = keywords[:-1]
@@ -358,7 +378,8 @@ class AppearanceTab(QtWidgets.QWidget):
             
         with open("styles.json", "w") as f:
             f.write(json.dumps(self.styles, sort_keys=False, indent=4))
-            """
+        logger.log(logger.DEBUG, "Finished writing stylesheets")
+        """
         run_file("syntax.py")
         run_file("gui.py")
         for widget in needs_to_be_updated:
@@ -367,6 +388,7 @@ class AppearanceTab(QtWidgets.QWidget):
 class SettingsDialog(Dialog):
     def __init__(self, initialX=600, initialY=400):
         super().__init__(initialX, initialY)
+        logger.log(logger.DEBUG, "Starting SettingsDialog GUI construction...")
         self.tabs = QtWidgets.QTabWidget(self)
         self.tabs.setStyleSheet(QTabWidgetStyle)
         self.layout.addWidget(self.tabs)
@@ -393,6 +415,7 @@ class SettingsDialog(Dialog):
         self.b_apply.clicked.connect(self.tab_appearance.apply)
         self.layout.addWidget(self.b_apply)
         self.resize(initialX, initialY)
+        logger.log(logger.DEBUG, "SettingsDialog GUI construction complete")
 
 class TextDialog(Dialog):
     def __init__(self, text):
