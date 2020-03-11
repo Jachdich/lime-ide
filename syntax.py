@@ -3,20 +3,14 @@ import sys
 from PyQt5.QtCore import QRegExp
 from PyQt5 import QtGui
 #from PyQt5.QtGui import QColor, QTextCharFormat, QFont, QSyntaxHighlighter
-from stylesheets import (bgcolour, fgcolour, keyword_colour, operator_colour, brace_colour,
-                         defclass_colour, string_colour, string2_colour, comment_colour,
-                         self_colour, numbers_colour, builtin_colour, reload_words)
+from stylesheets import managerInstance as SSM
 
-from stylesheets import (builtins  as builtin,
-                         keywords  as keyword,
-                         operators as operator,
-                         braces    as brace)
-
-def format(style, colour_bg=bgcolour):
+def formatStyle(style):
     """Return a QTextCharFormat with the given attributes.
     """
     colour = style[0]
-    style = style[1]
+    colour_bg = style[1]
+    style = style[2]
     
     _colour = QtGui.QColor()
     _colour.setNamedColor(colour)
@@ -34,75 +28,72 @@ def format(style, colour_bg=bgcolour):
 
     return _format
 
-
-# Syntax styles that can be shared by all languages
-STYLES = {
-    'keyword': format(keyword_colour),
-    'builtins': format(builtin_colour),
-    'operator': format(operator_colour),
-    'brace': format(brace_colour),
-    'defclass': format(defclass_colour),
-    'string': format(string_colour),
-    'string2': format(string2_colour),
-    'comment': format(comment_colour),
-    'self': format(self_colour),
-    'numbers': format(numbers_colour),
-}
-
 class PythonHighlighter(QtGui.QSyntaxHighlighter):
     """Syntax highlighter for the Python language.
     """
     def __init__(self, document):
         QtGui.QSyntaxHighlighter.__init__(self, document)
         # Python keywords
-        self.builtins = builtin
-        self.keywords = keyword
+        self.STYLES = {
+            'keyword': formatStyle(SSM.keyword_colour),
+            'builtins': formatStyle(SSM.builtin_colour),
+            'operator': formatStyle(SSM.operator_colour),
+            'brace': formatStyle(SSM.brace_colour),
+            'defclass': formatStyle(SSM.defclass_colour),
+            'string': formatStyle(SSM.string_colour),
+            'string2': formatStyle(SSM.string2_colour),
+            'comment': formatStyle(SSM.comment_colour),
+            'self': formatStyle(SSM.self_colour),
+            'numbers': formatStyle(SSM.numbers_colour),
+        }
+        self.builtins = SSM.builtins
+        self.keywords = SSM.keywords
 
         # Python operators
-        self.operators = operator
+        self.operators = SSM.operators
 
         # Python braces
-        self.braces = brace
+        self.braces = SSM.braces
 
         # Multi-line strings (expression, flag, style)
         # FIXME: The triple-quotes in these two lines will mess up the
         # syntax highlighting from this point onward
-        self.tri_single = (QRegExp("\'\'\'"), 1, STYLES['string2'])
-        self.tri_double = (QRegExp('\"\"\"'), 2, STYLES['string2'])
+        self.tri_single = (QRegExp("\'\'\'"), 1, self.STYLES['string2'])
+        self.tri_double = (QRegExp('\"\"\"'), 2, self.STYLES['string2'])
 
         rules = []
 
         # Keyword, operator, and brace rules
-        rules += [(r'\b%s\b' % w, 0, STYLES['keyword'])
+        rules += [(r'\b%s\b' % w, 0, self.STYLES['keyword'])
             for w in self.keywords]
-        rules += [(r'\b%s\b' % w, 0, STYLES['builtins'])
+        rules += [(r'\b%s\b' % w, 0, self.STYLES['builtins'])
             for w in self.builtins]
-        rules += [(r'%s' % o, 0, STYLES['operator'])
+        rules += [(r'%s' % o, 0, self.STYLES['operator'])
             for o in self.operators]
-        rules += [(r'%s' % b, 0, STYLES['brace'])
+        rules += [(r'%s' % b, 0, self.STYLES['brace'])
             for b in self.braces]
 
         # All other rules
         rules += [
-            (r'\b[+-]?[0-9]+[lL]?\b', 0, STYLES['numbers']),
-            (r'\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b', 0, STYLES['numbers']),
-            (r'\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b', 0, STYLES['numbers']),
+            (r'\b[+-]?[0-9]+[lL]?\b', 0, self.STYLES['numbers']),
+            (r'\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b', 0, self.STYLES['numbers']),
+            (r'\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b', 0, self.STYLES['numbers']),
 
             # 'def' followed by an identifier
-            (r'\bdef\b\s*(\w+)', 1, STYLES['defclass']),
+            (r'\bdef\b\s*(\w+)', 1, self.STYLES['defclass']),
             # 'class' followed by an identifier
-            (r'\bclass\b\s*(\w+)', 1, STYLES['defclass']),
+            (r'\bclass\b\s*(\w+)', 1, self.STYLES['defclass']),
             
             # 'self'
-            (r'\bself\b', 0, STYLES['self']),
+            (r'\bself\b', 0, self.STYLES['self']),
 
             # Double-quoted string, possibly containing escape sequences
-            (r'"[^"\\]*(\\.[^"\\]*)*"', 0, STYLES['string']),
+            (r'"[^"\\]*(\\.[^"\\]*)*"', 0, self.STYLES['string']),
             # Single-quoted string, possibly containing escape sequences
-            (r"'[^'\\]*(\\.[^'\\]*)*'", 0, STYLES['string']),
+            (r"'[^'\\]*(\\.[^'\\]*)*'", 0, self.STYLES['string']),
                     
             # From '#' until a newline
-            (r'#[^\n]*', 0, STYLES['comment']),
+            (r'#[^\n]*', 0, self.STYLES['comment']),
 
         ]
 
@@ -111,11 +102,11 @@ class PythonHighlighter(QtGui.QSyntaxHighlighter):
             for (pat, index, fmt) in rules]
 
     def redefine_words(self):
-        reload_words()
-        self.builtins = builtin
-        self.keywords = keyword
-        self.operators = operator
-        self.braces = brace
+        #reload_words()
+        self.builtins = SSM.builtins
+        self.keywords = SSM.keywords
+        self.operators = SSM.operators
+        self.braces = SSM.braces
 
     def highlightBlock(self, text):
         """Apply syntax highlighting to the given block of text.

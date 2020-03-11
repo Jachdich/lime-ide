@@ -97,40 +97,49 @@
     },
     "colours": {
         "builtin": [
-            "#ff00ff",
-            "default"
+            "#ff00aaff",
+            "{bg}",
+            "normal"
         ],
         "comment": [
             "#107f2f",
+            "{bg}",
             "italic"
         ],
         "defclass": [
             "#5e5eff",
+            "{bg}",
             "default"
         ],
         "numbers": [
             "#dddddd",
+            "{bg}",
             "default"
         ],
         "dark": "#2d2d2d",
         "keyword": [
             "#ff8000",
+            "{bg}",
             "default"
         ],
         "operator": [
             "red",
+            "{bg}",
             "default"
         ],
         "self": [
             "#dddddd",
+            "{bg}",
             "italic"
         ],
         "string2": [
             "#02ff02",
+            "{bg}",
             "default"
         ],
         "brace": [
             "darkGray",
+            "{bg}",
             "default"
         ],
         "fg": "#dddddd",
@@ -138,6 +147,7 @@
         "light": "#555555",
         "string": [
             "#02ff02",
+            "{bg}",
             "default"
         ]
     }
