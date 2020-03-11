@@ -9,8 +9,10 @@
 #FIX THE DAMN BLODDY STYLESHEETS + MAKE IT SIMPLER (i.e. one stylesheet applied to all...?)
 
 #import Python standard libraries + PyQt5
-import sys, os, json, threading, webbrowser
+import sys, os, json, threading, webbrowser, traceback
 from PyQt5 import QtCore, QtWidgets, QtGui
+
+
 from interpreters.befunge import befunge_debug
 import logger
 
@@ -19,7 +21,7 @@ mode = "python"
 #import helper files
 import gui, net
 from constants import *
-from stylesheets import QMainWindowStyle, QMenuStyle, QPlainTextStyle, QWidgetStyle
+from stylesheets import managerInstance as styleSheetManager
 
 #main window class
 class Window(QtWidgets.QMainWindow):
@@ -35,6 +37,10 @@ class Window(QtWidgets.QMainWindow):
         self.init_GUI()
 
     def init_GUI(self):
+        logger.log(logger.DEBUG, "Loading stylesheets...")
+        styleSheetManager.loadSheets()
+        logger.log(logger.DEBUG, "Finished loading stylesheets")
+        
         self.initMenus()
         logger.log("debug", "Menus initialised")
         
@@ -44,8 +50,10 @@ class Window(QtWidgets.QMainWindow):
 
         self.file_splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
         self.text_splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
-        
+
+        logger.log(logger.DEBUG, "Getting file structure...")
         dct = self.get_file_structure()
+        logger.log(logger.DEBUG, "File structure successfully downloaded")
 
         self.file_list = gui.FileMenu(self, dct["."])
         self.file_list.item_changed.connect(self.send_file_request)
@@ -84,11 +92,7 @@ class Window(QtWidgets.QMainWindow):
 
     def applyStyleSheets(self):
         logger.log("debug", "Applying stylesheets...")
-        self.setStyleSheet(QMainWindowStyle)
-        self.menu.setStyleSheet(QMenuStyle)
-        self.main.setStyleSheet(QWidgetStyle)
-        self.main_text.setStyleSheet(QPlainTextStyle)
-        self.output_text.setStyleSheet(QPlainTextStyle)
+        self.setStyleSheet(styleSheetManager.StyleSheet)
 
     def initMenus(self):
         self.menu = self.menuBar()
@@ -272,9 +276,16 @@ class Window(QtWidgets.QMainWindow):
     def options(self):
         self.sss = gui.SettingsDialog()
 
+def handleException(exc_type, exc_value, exc_traceback):
+    logger.log(logger.FATAL, "Exception was generated!")
+    logger.log(logger.FATAL, exc_type.__name__ + ": " + str(exc_value))
+    for x in "".join(traceback.format_tb(exc_traceback)).split("\n"):
+        logger.log(logger.FATAL, "    " + x)
+
 if __name__ == "__main__":
+    sys.excepthook = handleException
+    logger.log(logger.DEBUG, "Setting style to {}".format("Fusion"))
     QtWidgets.QApplication.setStyle(QtWidgets.QStyleFactory.create("Fusion"))
-    print(QtWidgets.QStyleFactory.keys())
     app = QtWidgets.QApplication(sys.argv)
     win = Window()
     status = app.exec_()
