@@ -1,7 +1,6 @@
 from PyQt5       import QtCore, QtWidgets, QtGui
 from constants   import *
-from stylesheets import QTreeViewStyle, QVScrollbarStyle, QHScrollbarStyle, QTabWidgetStyle
-from stylesheets import QPlainTextStyle, QTreeViewHeaderStyle, QMainWindowStyle, QWidgetStyle
+from stylesheets import managerInstance as styleSheetManager
 from strings     import run_file
 import os, syntax, threading, subprocess, json, logger
 from sys import exit
@@ -36,9 +35,6 @@ class FileMenu(QtWidgets.QWidget):
         self.tree_view.setModel(self.m_proxy)
         self.tree_view.clicked.connect(self.emit_current_file)
         self.tree_view.model().m.itemChanged.connect(self.handle_item_changed)
-        
-        self.tree_view.setStyleSheet(QTreeViewStyle + QVScrollbarStyle + QHScrollbarStyle)
-        self.tree_view.header().setStyleSheet(QTreeViewHeaderStyle)
         
         self.update()
         self.setLayout(self.layout)
@@ -143,8 +139,6 @@ class HighlightedTextBox(QtWidgets.QPlainTextEdit):
             self.inserted_by_user = True
             self.parent = parent
             
-            self.setStyleSheet(QPlainTextStyle)
-
             self.syntax = syntax.PythonHighlighter(self.document())
             needs_to_be_updated.append(self)
         
@@ -202,7 +196,6 @@ class HighlightedTextBox(QtWidgets.QPlainTextEdit):
 
     def update(self):
         super().__init__()
-        self.setStyleSheet(QPlainTextStyle)
         #self.syntax = syntax.PythonHighlighter(self.document())
         self.syntax.redefine_words()
             
@@ -241,7 +234,7 @@ class Dialog(QtWidgets.QMainWindow):
         self.main.setLayout(self.layout)
         self.main.resize(initialX, initialY)
         
-        self.setStyleSheet(QMainWindowStyle)
+        self.setStyleSheet(styleSheetManager.StyleSheet)
         self.setCentralWidget(self.main)
         self.show()
 
@@ -253,24 +246,20 @@ class AppearanceTab(QtWidgets.QWidget):
         self.colours = {"builtin": None}
         
         self.tabs = QtWidgets.QTabWidget(self)
-        self.tabs.setStyleSheet(QTabWidgetStyle)
         self.layout = QtWidgets.QGridLayout()
         self.layout.addWidget(self.tabs, 0, 0, 10, 10)
         
         self.tab_syntax = QtWidgets.QWidget()
-        self.tab_syntax.setStyleSheet(QWidgetStyle)
         self.tab_syntax_layout = QtWidgets.QGridLayout()
         self.tab_syntax.setLayout(self.tab_syntax_layout)
         self.tabs.addTab(self.tab_syntax, "Syntax")
 
         self.tab_interface = QtWidgets.QWidget()
-        self.tab_interface.setStyleSheet(QWidgetStyle)
         self.tab_interface_layout = QtWidgets.QGridLayout()
         self.tab_interface.setLayout(self.tab_interface_layout)
         self.tabs.addTab(self.tab_interface, "Interface")
 
         self.tab_ssheets = QtWidgets.QWidget()
-        self.tab_ssheets.setStyleSheet(QWidgetStyle)
         self.tab_ssheets_layout = QtWidgets.QGridLayout()
         self.tab_ssheets.setLayout(self.tab_ssheets_layout)
         self.tabs.addTab(self.tab_ssheets, "Stylesheets")
@@ -345,6 +334,25 @@ class AppearanceTab(QtWidgets.QWidget):
         self.tab_interface_layout.addWidget(self.b_light_bg_colour, 2, 1)
         self.tab_interface_layout.addWidget(self.b_dark_bg_colour, 3, 1)
 
+
+        #Stylesheets
+
+        self.c_stylesheet = QtWidgets.QComboBox(self)
+        for sheet in styleSheetManager.raw_stylesheets:
+            self.c_stylesheet.addItem(sheet)
+
+        self.c_stylesheet.activated[str].connect(self.change_stylesheet)
+
+        self.t_stylesheet = QtWidgets.QPlainTextEdit(self)
+
+        self.tab_ssheets_layout.addWidget(self.c_stylesheet)
+        self.tab_ssheets_layout.addWidget(self.t_stylesheet)
+        self.change_stylesheet(self.c_stylesheet.itemText(self.c_stylesheet.currentIndex()))
+
+    def change_stylesheet(self, sheet):
+        self.t_stylesheet.clear()
+        self.t_stylesheet.insertPlainText(styleSheetManager.raw_stylesheets[sheet])
+
     def change_colour(self, name, button):
         colour = QtWidgets.QColorDialog.getColor()
         hex_colour = hex(colour.rgb())[2:]
@@ -390,7 +398,6 @@ class SettingsDialog(Dialog):
         super().__init__(initialX, initialY)
         logger.log(logger.DEBUG, "Starting SettingsDialog GUI construction...")
         self.tabs = QtWidgets.QTabWidget(self)
-        self.tabs.setStyleSheet(QTabWidgetStyle)
         self.layout.addWidget(self.tabs)
         self.tabs.resize(initialX, initialY)
         
@@ -399,13 +406,11 @@ class SettingsDialog(Dialog):
         self.tabs.addTab(self.tab_appearance, "Appearance")
 
         self.tab_server = QtWidgets.QWidget()
-        self.tab_server.setStyleSheet(QWidgetStyle)
         self.tab_server_layout = QtWidgets.QGridLayout()
         self.tab_server.setLayout(self.tab_server_layout)
         self.tabs.addTab(self.tab_server, "Server")
 
         self.tab_appearance1 = QtWidgets.QWidget()
-        self.tab_appearance1.setStyleSheet(QWidgetStyle)
         self.tab_appearance1_layout = QtWidgets.QGridLayout()
         self.tab_appearance1.setLayout(self.tab_appearance1_layout)
         self.tabs.addTab(self.tab_appearance1, "Old")
@@ -472,7 +477,6 @@ class BefungeTextBox(HighlightedTextBox):
         super().__init__(parent, False)
 
         #self.syntax = syntax.PythonHighlighter(self.document())
-        self.setStyleSheet(QPlainTextStyle)
         needs_to_be_updated.append(self)
         
     def add_indent(self):
